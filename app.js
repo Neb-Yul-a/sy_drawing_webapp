@@ -43,6 +43,9 @@
         templateName: null
     };
 
+    /* Guard: prevent touch pass-through when modals close */
+    var modalClosedAt = 0;
+
     /* ===== DOM References ===== */
     var canvas, ctx;
     var penTypesBar, stampTypesBar;
@@ -159,6 +162,7 @@
             (function (overlay) {
                 addTap(overlay, function () {
                     overlay.parentNode.classList.add('hidden');
+                    modalClosedAt = Date.now();
                 });
             })(overlays[i]);
         }
@@ -166,11 +170,13 @@
         // Clear confirm buttons
         addTap(document.getElementById('clear-yes'), function () {
             clearModal.classList.add('hidden');
+            modalClosedAt = Date.now();
             clearToWhite();
             pushHistory();
         });
         addTap(document.getElementById('clear-no'), function () {
             clearModal.classList.add('hidden');
+            modalClosedAt = Date.now();
         });
 
         // Handle orientation change / resize
@@ -228,6 +234,7 @@
     function onTouchStart(e) {
         e.preventDefault();
         if (e.touches.length !== 1) return;
+        if (Date.now() - modalClosedAt < 400) return;
         var p = getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
         beginStroke(p.x, p.y);
     }

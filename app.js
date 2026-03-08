@@ -565,15 +565,26 @@
 
     function stampMoon(cx, cy, size) {
         var r = size / 2;
-        ctx.fillStyle = state.color;
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.fill();
-        // Cut out part for crescent
-        ctx.fillStyle = '#FFFFFF';
-        ctx.beginPath();
-        ctx.arc(cx + r * 0.35, cy - r * 0.1, r * 0.75, 0, Math.PI * 2);
-        ctx.fill();
+        var d = r * 2 + 4;
+        // Use offscreen canvas to compose crescent cleanly
+        var off = document.createElement('canvas');
+        off.width = d;
+        off.height = d;
+        var oc = off.getContext('2d');
+        var ocx = d / 2;
+        var ocy = d / 2;
+        // Draw full circle
+        oc.fillStyle = state.color;
+        oc.beginPath();
+        oc.arc(ocx, ocy, r, 0, Math.PI * 2);
+        oc.fill();
+        // Erase inner circle to create crescent
+        oc.globalCompositeOperation = 'destination-out';
+        oc.beginPath();
+        oc.arc(ocx + r * 0.4, ocy - r * 0.1, r * 0.75, 0, Math.PI * 2);
+        oc.fill();
+        // Stamp onto main canvas
+        ctx.drawImage(off, cx - d / 2, cy - d / 2);
     }
 
     /* ===== History (Undo) ===== */

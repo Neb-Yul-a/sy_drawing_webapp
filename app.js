@@ -40,7 +40,8 @@
         history: [],
         historyIndex: -1,
         templateFunc: null,
-        templateName: null
+        templateName: null,
+        templateMode: 'trace'  // 'trace' = 따라그리기, 'color' = 색칠하기
     };
 
     /* Guard: prevent touch pass-through when modals close */
@@ -48,15 +49,20 @@
 
     /* ===== DOM References ===== */
     var canvas, ctx;
+    var overlayCanvas, overlayCtx;
     var penTypesBar, stampTypesBar;
     var templateModal, saveModal, clearModal;
+    var templateModeBar;
 
     /* ===== Initialization ===== */
     function init() {
         canvas = document.getElementById('canvas');
         ctx = canvas.getContext('2d');
+        overlayCanvas = document.getElementById('canvas-overlay');
+        overlayCtx = overlayCanvas.getContext('2d');
         penTypesBar = document.getElementById('pen-types');
         stampTypesBar = document.getElementById('stamp-types');
+        templateModeBar = document.getElementById('template-mode-bar');
         templateModal = document.getElementById('template-modal');
         saveModal = document.getElementById('save-modal');
         clearModal = document.getElementById('clear-modal');
@@ -89,6 +95,13 @@
         canvas.style.height = canvasH + 'px';
         canvas.width = canvasW;
         canvas.height = canvasH;
+
+        overlayCanvas.style.top = topOffset + 'px';
+        overlayCanvas.style.left = '0';
+        overlayCanvas.style.width = canvasW + 'px';
+        overlayCanvas.style.height = canvasH + 'px';
+        overlayCanvas.width = canvasW;
+        overlayCanvas.height = canvasH;
     }
 
     /* ===== Color Palette ===== */
@@ -179,6 +192,23 @@
             modalClosedAt = Date.now();
         });
 
+        // Template mode toggle
+        addTap(document.getElementById('mode-trace'), function () {
+            state.templateMode = 'trace';
+            updateTemplateModeUI();
+            syncOverlay();
+            // Redraw template on main canvas for tracing
+            if (state.templateFunc) {
+                state.templateFunc(ctx, canvas.width, canvas.height);
+                pushHistory();
+            }
+        });
+        addTap(document.getElementById('mode-color'), function () {
+            state.templateMode = 'color';
+            updateTemplateModeUI();
+            syncOverlay();
+        });
+
         // Handle orientation change / resize
         window.addEventListener('resize', onResize, false);
     }
@@ -219,6 +249,7 @@
             if (imgData) {
                 ctx.putImageData(imgData, 0, 0);
             }
+            syncOverlay();
         }, 200);
     }
 
@@ -306,6 +337,48 @@
         if (state.drawing) {
             state.drawing = false;
             pushHistory();
+        }
+    }
+
+    /* Sync template overlay canvas */
+    function syncOverlay() {
+        if (state.templateMode === 'color' && state.templateFunc) {
+            overlayCanvas.style.display = 'block';
+            // Draw template on a temp white-background canvas (same rendering as trace mode)
+            var tmp = document.createElement('canvas');
+            tmp.width = overlayCanvas.width;
+            tmp.height = overlayCanvas.height;
+            var tmpCtx = tmp.getContext('2d');
+            tmpCtx.lineJoin = 'round';
+            tmpCtx.lineCap = 'round';
+            tmpCtx.fillStyle = '#FFFFFF';
+            tmpCtx.fillRect(0, 0, tmp.width, tmp.height);
+            state.templateFunc(tmpCtx, tmp.width, tmp.height);
+
+            // Extract lines: white/light → transparent, dark → fully opaque
+            var imgData = tmpCtx.getImageData(0, 0, tmp.width, tmp.height);
+            var d = imgData.data;
+            for (var i = 0; i < d.length; i += 4) {
+                var brightness = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+                if (brightness > 220) {
+                    // White/light → fully transparent
+                    d[i + 3] = 0;
+                } else if (brightness > 180) {
+                    // Anti-alias transition zone → smooth edge
+                    d[i] = d[i + 1] = d[i + 2] = 0;
+                    d[i + 3] = Math.round(255 * (220 - brightness) / 40);
+                } else {
+                    // Dark line pixel → solid black, fully opaque
+                    d[i] = d[i + 1] = d[i + 2] = 0;
+                    d[i + 3] = 255;
+                }
+            }
+
+            overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            overlayCtx.putImageData(imgData, 0, 0);
+        } else {
+            overlayCanvas.style.display = 'none';
+            overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
         }
     }
 
@@ -724,13 +797,38 @@
         }
     }
 
+    function updateTemplateModeUI() {
+        var traceBtn = document.getElementById('mode-trace');
+        var colorBtn = document.getElementById('mode-color');
+        if (state.templateMode === 'trace') {
+            traceBtn.classList.add('active');
+            colorBtn.classList.remove('active');
+        } else {
+            traceBtn.classList.remove('active');
+            colorBtn.classList.add('active');
+        }
+    }
+
+    function showTemplateModeBar(show) {
+        if (show) {
+            templateModeBar.classList.remove('hidden');
+        } else {
+            templateModeBar.classList.add('hidden');
+        }
+    }
+
     /* ===== Canvas Clear ===== */
     function clearToWhite() {
         ctx.globalAlpha = 1;
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        if (state.templateFunc) {
+        // In trace mode, draw template on main canvas; in color mode, overlay handles it
+        if (state.templateFunc && state.templateMode !== 'color') {
+            ctx.save();
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
             state.templateFunc(ctx, canvas.width, canvas.height);
+            ctx.restore();
         }
     }
 
@@ -760,8 +858,10 @@
         // Sub toolbar visibility
         penTypesBar.classList.add('hidden');
         stampTypesBar.classList.add('hidden');
+        templateModeBar.classList.add('hidden');
         if (tool === 'pen') penTypesBar.classList.remove('hidden');
-        if (tool === 'stamp') stampTypesBar.classList.remove('hidden');
+        else if (tool === 'stamp') stampTypesBar.classList.remove('hidden');
+        else if (state.templateFunc) templateModeBar.classList.remove('hidden');
     }
 
     function onPenTypeTap(e) {
@@ -815,7 +915,16 @@
 
     /* ===== Save ===== */
     function showSaveDialog() {
-        var dataURL = canvas.toDataURL('image/png');
+        // Composite: main canvas + overlay (if visible)
+        var tmpCanvas = document.createElement('canvas');
+        tmpCanvas.width = canvas.width;
+        tmpCanvas.height = canvas.height;
+        var tmpCtx = tmpCanvas.getContext('2d');
+        tmpCtx.drawImage(canvas, 0, 0);
+        if (overlayCanvas.style.display !== 'none') {
+            tmpCtx.drawImage(overlayCanvas, 0, 0);
+        }
+        var dataURL = tmpCanvas.toDataURL('image/png');
         var preview = document.getElementById('save-preview');
         preview.innerHTML = '';
         var img = document.createElement('img');
@@ -849,6 +958,8 @@
         addTap(free, function () {
             state.templateFunc = null;
             state.templateName = null;
+            showTemplateModeBar(false);
+            syncOverlay();
             clearToWhite();
             pushHistory();
             templateModal.classList.add('hidden');
@@ -879,7 +990,9 @@
                 addTap(item, function () {
                     state.templateFunc = tmpl.fn;
                     state.templateName = tmpl.name;
+                    showTemplateModeBar(true);
                     clearToWhite();
+                    syncOverlay();
                     pushHistory();
                     templateModal.classList.add('hidden');
                 });

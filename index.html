@@ -44,8 +44,16 @@
         <button class="sub-btn" data-stamp="mermaid">🐟<span class="sub-label">물고기</span></button>
     </div>
 
+    <!-- Template Mode Toggle Bar -->
+    <div id="template-mode-bar" class="sub-toolbar hidden">
+        <button id="mode-trace" class="mode-btn active">✏️ 따라그리기</button>
+        <button id="mode-color" class="mode-btn">🖍 색칠하기</button>
+    </div>
+
     <!-- Main Canvas -->
     <canvas id="canvas"></canvas>
+    <!-- Template Overlay Canvas (color mode) -->
+    <canvas id="canvas-overlay"></canvas>
 
     <!-- Bottom Bar: Colors + Size -->
     <div id="bottom-bar">

@@ -58,18 +58,34 @@
         saveModal = document.getElementById('save-modal');
         clearModal = document.getElementById('clear-modal');
 
-        sizeCanvas();
         buildColorPalette();
         buildTemplateGrid();
         bindEvents();
-        clearToWhite();
-        pushHistory();
+
+        // Delay canvas sizing to ensure layout is fully settled
+        setTimeout(function () {
+            sizeCanvas();
+            clearToWhite();
+            pushHistory();
+        }, 100);
     }
 
     function sizeCanvas() {
-        var rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
+        // Calculate canvas size from known layout: toolbar(52px) top, bottom-bar(76px) bottom
+        var w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+        var h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+        var topOffset = 52;
+        var bottomOffset = 76;
+        var canvasW = w;
+        var canvasH = h - topOffset - bottomOffset;
+        if (canvasH < 100) canvasH = 100;
+
+        canvas.style.top = topOffset + 'px';
+        canvas.style.left = '0';
+        canvas.style.width = canvasW + 'px';
+        canvas.style.height = canvasH + 'px';
+        canvas.width = canvasW;
+        canvas.height = canvasH;
     }
 
     /* ===== Color Palette ===== */

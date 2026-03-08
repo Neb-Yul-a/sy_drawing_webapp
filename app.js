@@ -499,6 +499,8 @@
             case 'smiley': stampSmiley(x, y, s); break;
             case 'flower': stampFlower(x, y, s); break;
             case 'moon': stampMoon(x, y, s); break;
+            case 'bear': stampBear(x, y, s); break;
+            case 'mermaid': stampFish(x, y, s); break;
         }
         ctx.restore();
     }
@@ -518,14 +520,33 @@
     }
 
     function stampHeart(cx, cy, size) {
-        var s = size * 0.5;
+        var r = size / 2;
         ctx.fillStyle = state.color;
         ctx.beginPath();
-        ctx.moveTo(cx, cy + s * 0.35);
-        ctx.bezierCurveTo(cx, cy - s * 0.3, cx - s, cy - s * 0.4, cx - s, cy + s * 0.1);
-        ctx.bezierCurveTo(cx - s, cy + s * 0.6, cx, cy + s, cx, cy + s);
-        ctx.bezierCurveTo(cx, cy + s, cx + s, cy + s * 0.6, cx + s, cy + s * 0.1);
-        ctx.bezierCurveTo(cx + s, cy - s * 0.4, cx, cy - s * 0.3, cx, cy + s * 0.35);
+        ctx.moveTo(cx, cy + r * 0.65);
+        // Left side: bottom point → left bulge → top center
+        ctx.bezierCurveTo(
+            cx - r * 0.1, cy + r * 0.4,
+            cx - r * 0.95, cy + r * 0.05,
+            cx - r * 0.55, cy - r * 0.45
+        );
+        ctx.bezierCurveTo(
+            cx - r * 0.35, cy - r * 0.7,
+            cx - r * 0.05, cy - r * 0.6,
+            cx, cy - r * 0.3
+        );
+        // Right side: top center → right bulge → bottom point
+        ctx.bezierCurveTo(
+            cx + r * 0.05, cy - r * 0.6,
+            cx + r * 0.35, cy - r * 0.7,
+            cx + r * 0.55, cy - r * 0.45
+        );
+        ctx.bezierCurveTo(
+            cx + r * 0.95, cy + r * 0.05,
+            cx + r * 0.1, cy + r * 0.4,
+            cx, cy + r * 0.65
+        );
+        ctx.closePath();
         ctx.fill();
     }
 
@@ -592,6 +613,91 @@
         oc.fill();
         // Stamp onto main canvas
         ctx.drawImage(off, cx - d / 2, cy - d / 2);
+    }
+
+    function stampBear(cx, cy, size) {
+        var r = size / 2;
+        var headR = r * 0.65;
+        var earR = r * 0.3;
+        var earDist = headR * 0.7;
+        var color = state.color === '#FFFFFF' ? '#8B4513' : state.color;
+        // Ears
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(cx - earDist, cy - headR * 0.7, earR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + earDist, cy - headR * 0.7, earR, 0, Math.PI * 2);
+        ctx.fill();
+        // Inner ears
+        ctx.fillStyle = '#FFB6C1';
+        ctx.beginPath();
+        ctx.arc(cx - earDist, cy - headR * 0.7, earR * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + earDist, cy - headR * 0.7, earR * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+        // Head
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(cx, cy, headR, 0, Math.PI * 2);
+        ctx.fill();
+        // Muzzle
+        ctx.fillStyle = '#DEB887';
+        ctx.beginPath();
+        ctx.arc(cx, cy + headR * 0.25, headR * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        // Nose
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(cx, cy + headR * 0.1, headR * 0.12, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes
+        ctx.beginPath();
+        ctx.arc(cx - headR * 0.3, cy - headR * 0.15, headR * 0.09, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + headR * 0.3, cy - headR * 0.15, headR * 0.09, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function stampFish(cx, cy, size) {
+        var r = size / 2;
+        var color = state.color === '#FFFFFF' ? '#FF8C00' : state.color;
+        // Body (ellipse-like)
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(cx - r * 0.7, cy);
+        ctx.quadraticCurveTo(cx - r * 0.7, cy - r * 0.5, cx - r * 0.1, cy - r * 0.5);
+        ctx.quadraticCurveTo(cx + r * 0.5, cy - r * 0.5, cx + r * 0.55, cy);
+        ctx.quadraticCurveTo(cx + r * 0.5, cy + r * 0.5, cx - r * 0.1, cy + r * 0.5);
+        ctx.quadraticCurveTo(cx - r * 0.7, cy + r * 0.5, cx - r * 0.7, cy);
+        ctx.closePath();
+        ctx.fill();
+        // Tail
+        ctx.beginPath();
+        ctx.moveTo(cx + r * 0.45, cy);
+        ctx.lineTo(cx + r * 0.85, cy - r * 0.35);
+        ctx.quadraticCurveTo(cx + r * 0.65, cy, cx + r * 0.85, cy + r * 0.35);
+        ctx.closePath();
+        ctx.fill();
+        // Eye (white)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(cx - r * 0.32, cy - r * 0.08, r * 0.14, 0, Math.PI * 2);
+        ctx.fill();
+        // Eye (pupil)
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(cx - r * 0.3, cy - r * 0.08, r * 0.07, 0, Math.PI * 2);
+        ctx.fill();
+        // Mouth / Smile — starts from near the nose tip
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = Math.max(1.5, r * 0.04);
+        ctx.beginPath();
+        ctx.moveTo(cx - r * 0.64, cy + r * 0.25);
+        ctx.quadraticCurveTo(cx - r * 0.52, cy + r * 0.28, cx - r * 0.38, cy + r * 0.18);
+        ctx.stroke();
     }
 
     /* ===== History (Undo) ===== */

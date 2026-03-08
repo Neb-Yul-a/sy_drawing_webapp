@@ -502,7 +502,7 @@
         ctx.fill();
     }
 
-    /* ===== Flood Fill ===== */
+    /* ===== Flood Fill (scanline optimized) ===== */
     function floodFill(sx, sy, fillHex) {
         var w = canvas.width;
         var h = canvas.height;
@@ -520,37 +520,68 @@
         if (sr === fill.r && sg === fill.g && sb === fill.b && sa === 255) return;
 
         var tol = 32;
+        var visited = new Uint8Array(w * h);
+
+        function match(pos) {
+            var i = pos * 4;
+            return !visited[pos] &&
+                Math.abs(data[i] - sr) <= tol && Math.abs(data[i + 1] - sg) <= tol &&
+                Math.abs(data[i + 2] - sb) <= tol && Math.abs(data[i + 3] - sa) <= tol;
+        }
+
         var stack = [sx, sy];
-        var visited = {};
-        var maxIter = w * h;
-        var iter = 0;
 
-        while (stack.length > 0 && iter < maxIter) {
-            iter++;
-            var py = stack.pop();
-            var px = stack.pop();
+        while (stack.length > 0) {
+            var cy = stack.pop();
+            var cx = stack.pop();
+            var pos = cy * w + cx;
 
-            if (px < 0 || px >= w || py < 0 || py >= h) continue;
+            if (visited[pos] || !match(pos)) continue;
 
-            var key = py * w + px;
-            if (visited[key]) continue;
+            // Find left boundary of this span
+            var lx = cx;
+            while (lx > 0 && match(cy * w + lx - 1)) lx--;
 
-            var di = key * 4;
-            if (Math.abs(data[di] - sr) > tol || Math.abs(data[di + 1] - sg) > tol ||
-                Math.abs(data[di + 2] - sb) > tol || Math.abs(data[di + 3] - sa) > tol) {
-                continue;
+            // Fill rightward from left boundary
+            var rx = lx;
+            var spanUp = false;
+            var spanDown = false;
+
+            while (rx < w) {
+                var rpos = cy * w + rx;
+                if (!match(rpos)) break;
+
+                visited[rpos] = 1;
+                var ri = rpos * 4;
+                data[ri] = fill.r;
+                data[ri + 1] = fill.g;
+                data[ri + 2] = fill.b;
+                data[ri + 3] = 255;
+
+                // Check row above
+                if (cy > 0) {
+                    var aMatch = match((cy - 1) * w + rx);
+                    if (aMatch && !spanUp) {
+                        stack.push(rx, cy - 1);
+                        spanUp = true;
+                    } else if (!aMatch) {
+                        spanUp = false;
+                    }
+                }
+
+                // Check row below
+                if (cy < h - 1) {
+                    var bMatch = match((cy + 1) * w + rx);
+                    if (bMatch && !spanDown) {
+                        stack.push(rx, cy + 1);
+                        spanDown = true;
+                    } else if (!bMatch) {
+                        spanDown = false;
+                    }
+                }
+
+                rx++;
             }
-
-            visited[key] = 1;
-            data[di] = fill.r;
-            data[di + 1] = fill.g;
-            data[di + 2] = fill.b;
-            data[di + 3] = 255;
-
-            stack.push(px + 1, py);
-            stack.push(px - 1, py);
-            stack.push(px, py + 1);
-            stack.push(px, py - 1);
         }
 
         ctx.putImageData(imageData, 0, 0);
@@ -817,6 +848,49 @@
         }
     }
 
+    /* ===== Reset (full refresh) ===== */
+    function doReset() {
+        // Reset state
+        state.tool = 'pen';
+        state.penType = 'normal';
+        state.stampType = 'star';
+        state.color = '#000000';
+        state.size = 12;
+        state.drawing = false;
+        state.hue = 0;
+        state.history = [];
+        state.historyIndex = -1;
+        state.templateFunc = null;
+        state.templateName = null;
+        state.templateMode = 'trace';
+
+        // Reset UI
+        setActiveInGroup('#toolbar .tool-btn', document.querySelector('[data-tool="pen"]'));
+        setActiveInGroup('#pen-types .sub-btn', document.querySelector('[data-pen="normal"]'));
+        setActiveInGroup('#stamp-types .sub-btn', document.querySelector('[data-stamp="star"]'));
+        setActiveInGroup('#size-selector .size-btn', document.querySelector('[data-size="12"]'));
+        penTypesBar.classList.remove('hidden');
+        stampTypesBar.classList.add('hidden');
+        showTemplateModeBar(false);
+        updateTemplateModeUI();
+        syncOverlay();
+
+        // Rebuild color palette active state
+        var colorBtns = document.querySelectorAll('#color-palette .color-btn');
+        for (var i = 0; i < colorBtns.length; i++) {
+            colorBtns[i].classList.remove('active');
+            if (colorBtns[i].getAttribute('data-color') === '#000000') {
+                colorBtns[i].classList.add('active');
+            }
+        }
+
+        // Clear canvas
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        pushHistory();
+    }
+
     /* ===== Canvas Clear ===== */
     function clearToWhite() {
         ctx.globalAlpha = 1;
@@ -846,6 +920,7 @@
         if (tool === 'clear') { clearModal.classList.remove('hidden'); return; }
         if (tool === 'template') { templateModal.classList.remove('hidden'); return; }
         if (tool === 'save') { showSaveDialog(); return; }
+        if (tool === 'reset') { doReset(); return; }
 
         // Set active tool
         state.tool = tool;

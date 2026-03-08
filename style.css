@@ -91,13 +91,79 @@ html, body {
 /* Eraser icon (CSS-drawn) */
 .eraser-icon {
     display: inline-block;
-    width: 22px;
-    height: 16px;
-    background: #ffb6c1;
-    border: 2px solid #e91e8e;
-    border-radius: 4px 4px 2px 2px;
+    width: 20px;
+    height: 22px;
     position: relative;
     top: 2px;
+}
+
+/* Eraser body */
+.eraser-icon::before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 14px;
+    background: #ffb6c1;
+    border: 2px solid #e91e8e;
+    border-radius: 3px 3px 1px 1px;
+    position: absolute;
+    bottom: 0;
+}
+
+/* Eraser top band */
+.eraser-icon::after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 5px;
+    background: #e91e8e;
+    border-radius: 2px 2px 0 0;
+    position: absolute;
+    bottom: 12px;
+}
+
+/* Fill (paint bucket) icon */
+.fill-icon {
+    display: inline-block;
+    width: 18px;
+    height: 15px;
+    position: relative;
+    top: 3px;
+    background: -webkit-linear-gradient(left, #999, #ccc 40%, #999);
+    background: linear-gradient(to right, #999, #ccc 40%, #999);
+    border: 1.5px solid #666;
+    border-radius: 0 0 3px 3px;
+    -webkit-transform: rotate(-20deg);
+    transform: rotate(-20deg);
+}
+
+/* Bucket handle */
+.fill-icon::before {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 5px;
+    border: 2px solid #666;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    position: absolute;
+    top: -7px;
+    left: 2px;
+}
+
+/* Paint drop */
+.fill-icon::after {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 8px;
+    background: #42a5f5;
+    border-radius: 50% 0 50% 50%;
+    position: absolute;
+    bottom: -5px;
+    right: -4px;
+    -webkit-transform: rotate(20deg);
+    transform: rotate(20deg);
 }
 
 /* ===== Sub Toolbars ===== */

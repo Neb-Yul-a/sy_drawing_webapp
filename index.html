@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko" manifest="cache.manifest">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="그림놀이">
+    <meta name="format-detection" content="telephone=no">
+    <title>🎨 그림 놀이</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Toolbar -->
+    <div id="toolbar">
+        <button class="tool-btn active" data-tool="pen" aria-label="펜">✏️</button>
+        <button class="tool-btn" data-tool="eraser" aria-label="지우개"><span class="eraser-icon"></span></button>
+        <button class="tool-btn" data-tool="fill" aria-label="채우기">🎨</button>
+        <button class="tool-btn" data-tool="stamp" aria-label="도장">⭐</button>
+        <span class="toolbar-divider"></span>
+        <button class="tool-btn" data-tool="undo" aria-label="되돌리기">↩️</button>
+        <button class="tool-btn" data-tool="clear" aria-label="전체 지우기">🗑</button>
+        <button class="tool-btn" data-tool="template" aria-label="색칠공부">📖</button>
+        <button class="tool-btn" data-tool="save" aria-label="저장">💾</button>
+    </div>
+
+    <!-- Sub Toolbar: Pen Types -->
+    <div id="pen-types" class="sub-toolbar">
+        <button class="sub-btn active" data-pen="normal">✏️<span class="sub-label">연필</span></button>
+        <button class="sub-btn" data-pen="marker">🖊<span class="sub-label">마커</span></button>
+        <button class="sub-btn" data-pen="crayon">🖍<span class="sub-label">크레용</span></button>
+        <button class="sub-btn" data-pen="rainbow">🌈<span class="sub-label">무지개</span></button>
+        <button class="sub-btn" data-pen="sparkle">✨<span class="sub-label">반짝이</span></button>
+    </div>
+
+    <!-- Sub Toolbar: Stamp Types -->
+    <div id="stamp-types" class="sub-toolbar hidden">
+        <button class="sub-btn active" data-stamp="star">⭐<span class="sub-label">별</span></button>
+        <button class="sub-btn" data-stamp="heart">❤️<span class="sub-label">하트</span></button>
+        <button class="sub-btn" data-stamp="smiley">😊<span class="sub-label">웃음</span></button>
+        <button class="sub-btn" data-stamp="flower">🌸<span class="sub-label">꽃</span></button>
+        <button class="sub-btn" data-stamp="moon">🌙<span class="sub-label">달</span></button>
+    </div>
+
+    <!-- Main Canvas -->
+    <canvas id="canvas"></canvas>
+
+    <!-- Bottom Bar: Colors + Size -->
+    <div id="bottom-bar">
+        <div id="color-palette"></div>
+        <div id="size-selector">
+            <button class="size-btn" data-size="4">
+                <span class="size-dot" style="width:8px;height:8px"></span>
+            </button>
+            <button class="size-btn active" data-size="12">
+                <span class="size-dot" style="width:16px;height:16px"></span>
+            </button>
+            <button class="size-btn" data-size="28">
+                <span class="size-dot" style="width:26px;height:26px"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Template Modal -->
+    <div id="template-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">🖍 색칠 공부</span>
+                <button id="close-template" class="close-btn">✕</button>
+            </div>
+            <div id="template-grid"></div>
+        </div>
+    </div>
+
+    <!-- Save Modal -->
+    <div id="save-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">💾 내 그림</span>
+                <button id="close-save" class="close-btn">✕</button>
+            </div>
+            <div id="save-preview"></div>
+            <p class="save-hint">그림을 꾹 눌러서 저장하세요 📸</p>
+        </div>
+    </div>
+
+    <!-- Clear Confirm Modal -->
+    <div id="clear-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-small">
+            <p class="clear-msg">그림을 지울까요? 🤔</p>
+            <div class="clear-actions">
+                <button id="clear-yes" class="clear-btn clear-btn-yes">응! 🗑</button>
+                <button id="clear-no" class="clear-btn clear-btn-no">아니! 🙅</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

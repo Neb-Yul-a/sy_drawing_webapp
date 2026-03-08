@@ -1,0 +1,506 @@
+/* ============================
+   Kids Drawing App - Styles
+   iOS 9.3.6 Compatible
+   ============================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #f0f0f0;
+    font-family: -apple-system, 'Helvetica Neue', sans-serif;
+}
+
+/* ===== Top Toolbar ===== */
+#toolbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 52px;
+    background: -webkit-linear-gradient(top, #f3e5f5, #e1bee7);
+    background: linear-gradient(to bottom, #f3e5f5, #e1bee7);
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 6px;
+    z-index: 10;
+    border-bottom: 2px solid #ce93d8;
+}
+
+.tool-btn {
+    width: 44px;
+    height: 44px;
+    border: 2px solid #e0d0e8;
+    border-radius: 11px;
+    background: #fff;
+    font-size: 22px;
+    line-height: 40px;
+    text-align: center;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0;
+    outline: none;
+    -webkit-box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.tool-btn.active {
+    border-color: #7c4dff;
+    background: #ede7f6;
+    -webkit-box-shadow: 0 0 0 2px #7c4dff;
+    box-shadow: 0 0 0 2px #7c4dff;
+}
+
+.tool-btn:active {
+    -webkit-transform: scale(0.88);
+    transform: scale(0.88);
+    opacity: 0.7;
+}
+
+.toolbar-divider {
+    width: 2px;
+    height: 32px;
+    background: #ce93d8;
+    border-radius: 1px;
+    margin: 0 2px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+
+/* Eraser icon (CSS-drawn) */
+.eraser-icon {
+    display: inline-block;
+    width: 22px;
+    height: 16px;
+    background: #ffb6c1;
+    border: 2px solid #e91e8e;
+    border-radius: 4px 4px 2px 2px;
+    position: relative;
+    top: 2px;
+}
+
+/* ===== Sub Toolbars ===== */
+.sub-toolbar {
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.96);
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    gap: 6px;
+    z-index: 9;
+    border-bottom: 1px solid #e0e0e0;
+    -webkit-box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.sub-toolbar.hidden {
+    display: none;
+}
+
+.sub-btn {
+    height: 36px;
+    border: 2px solid #eee;
+    border-radius: 9px;
+    background: #fff;
+    font-size: 18px;
+    text-align: center;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0 8px;
+    outline: none;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 3px;
+}
+
+.sub-btn.active {
+    border-color: #ff9800;
+    background: #fff3e0;
+    -webkit-box-shadow: 0 0 0 1px #ff9800;
+    box-shadow: 0 0 0 1px #ff9800;
+}
+
+.sub-btn:active {
+    -webkit-transform: scale(0.92);
+    transform: scale(0.92);
+}
+
+.sub-label {
+    font-size: 11px;
+    color: #666;
+}
+
+/* ===== Canvas ===== */
+#canvas {
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    bottom: 76px;
+    background: #fff;
+    display: block;
+}
+
+/* ===== Bottom Bar ===== */
+#bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 76px;
+    background: -webkit-linear-gradient(top, #e1f5fe, #b3e5fc);
+    background: linear-gradient(to bottom, #e1f5fe, #b3e5fc);
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    padding: 3px 6px;
+    z-index: 10;
+    border-top: 2px solid #81d4fa;
+}
+
+#color-palette {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    gap: 5px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    padding: 3px 4px;
+}
+
+.color-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0;
+    outline: none;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+.color-btn.active {
+    border-color: #333;
+    -webkit-transform: scale(1.25);
+    transform: scale(1.25);
+    -webkit-box-shadow: 0 0 0 2px #fff, 0 0 0 4px #333;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #333;
+}
+
+.color-btn.white-color {
+    border: 3px solid #bbb;
+}
+.color-btn.white-color.active {
+    border-color: #333;
+}
+
+#size-selector {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 10px;
+    padding: 2px 0;
+}
+
+.size-btn {
+    width: 38px;
+    height: 28px;
+    border: 2px solid #ddd;
+    border-radius: 7px;
+    background: #fff;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0;
+    outline: none;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.size-btn.active {
+    border-color: #2196f3;
+    background: #e3f2fd;
+}
+
+.size-btn:active {
+    -webkit-transform: scale(0.9);
+    transform: scale(0.9);
+}
+
+.size-dot {
+    display: block;
+    border-radius: 50%;
+    background: #333;
+}
+
+/* ===== Modals ===== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    width: 90%;
+    max-width: 540px;
+    max-height: 80%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    -webkit-box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    z-index: 1;
+}
+
+.modal-small {
+    max-width: 320px;
+    text-align: center;
+    padding: 24px;
+}
+
+.modal-header {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-align-items: center;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.close-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: #ef5350;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 36px;
+    text-align: center;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0;
+    outline: none;
+}
+
+.close-btn:active {
+    -webkit-transform: scale(0.9);
+    transform: scale(0.9);
+}
+
+/* Template Grid */
+#template-grid {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    gap: 10px;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.template-item {
+    width: 110px;
+    height: 110px;
+    border: 3px solid #e0e0e0;
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+}
+
+.template-item:active {
+    border-color: #7c4dff;
+    -webkit-transform: scale(0.95);
+    transform: scale(0.95);
+}
+
+.template-item canvas {
+    width: 100%;
+    height: 100%;
+}
+
+.template-item .template-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    font-size: 11px;
+    text-align: center;
+    padding: 2px 0;
+}
+
+/* Free draw template item */
+.template-item.free-draw {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    border-color: #81c784;
+    background: #e8f5e9;
+}
+
+.template-item.free-draw .free-icon {
+    font-size: 36px;
+}
+
+.template-item.free-draw .free-text {
+    font-size: 12px;
+    color: #388e3c;
+    font-weight: bold;
+    margin-top: 4px;
+}
+
+/* Save Preview */
+#save-preview {
+    text-align: center;
+    padding: 8px;
+}
+
+#save-preview img {
+    max-width: 100%;
+    max-height: 260px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.save-hint {
+    text-align: center;
+    font-size: 14px;
+    color: #888;
+    margin-top: 10px;
+}
+
+/* Clear Confirm */
+.clear-msg {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.clear-actions {
+    display: -webkit-flex;
+    display: flex;
+    gap: 16px;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.clear-btn {
+    width: 110px;
+    height: 50px;
+    border: none;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0;
+    outline: none;
+}
+
+.clear-btn:active {
+    -webkit-transform: scale(0.92);
+    transform: scale(0.92);
+}
+
+.clear-btn-yes {
+    background: #ef5350;
+    color: #fff;
+}
+
+.clear-btn-no {
+    background: #66bb6a;
+    color: #fff;
+}

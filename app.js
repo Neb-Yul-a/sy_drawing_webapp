@@ -54,6 +54,10 @@
     var pendingMove = null;
     var rafId = 0;
 
+    /* Cached template boundary for flood fill */
+    var cachedBoundary = null;
+    var cachedBoundaryKey = null;
+
     /* ===== DOM References ===== */
     var canvas, ctx;
     var overlayCanvas, overlayCtx;
@@ -172,9 +176,11 @@
         // Modal close buttons
         addTap(document.getElementById('close-template'), function () {
             templateModal.classList.add('hidden');
+            modalClosedAt = Date.now();
         });
         addTap(document.getElementById('close-save'), function () {
             saveModal.classList.add('hidden');
+            modalClosedAt = Date.now();
         });
 
         // Modal overlay close
@@ -308,6 +314,7 @@
     }
 
     function onMouseDown(e) {
+        if (Date.now() - modalClosedAt < 400) return;
         var p = getCanvasPos(e.clientX, e.clientY);
         beginStroke(p.x, p.y);
     }
@@ -536,6 +543,41 @@
         ctx.fill();
     }
 
+    /* ===== Template Boundary for Flood Fill ===== */
+    function getTemplateBoundary(w, h) {
+        var key = (state.templateName || '') + '_' + w + '_' + h;
+        if (cachedBoundaryKey === key && cachedBoundary) return cachedBoundary;
+
+        var tmp = document.createElement('canvas');
+        tmp.width = w;
+        tmp.height = h;
+        var tmpCtx = tmp.getContext('2d');
+        tmpCtx.lineJoin = 'round';
+        tmpCtx.lineCap = 'round';
+        tmpCtx.fillStyle = '#FFFFFF';
+        tmpCtx.fillRect(0, 0, w, h);
+        state.templateFunc(tmpCtx, w, h);
+
+        var imgData = tmpCtx.getImageData(0, 0, w, h);
+        var d = imgData.data;
+        var len = w * h;
+        cachedBoundary = new Uint8Array(len);
+        for (var i = 0; i < len; i++) {
+            var bi = i * 4;
+            var brightness = (d[bi] * 77 + d[bi + 1] * 150 + d[bi + 2] * 29) >> 8;
+            if (brightness < 200) {
+                cachedBoundary[i] = 1;
+            }
+        }
+        cachedBoundaryKey = key;
+        return cachedBoundary;
+    }
+
+    function invalidateBoundaryCache() {
+        cachedBoundary = null;
+        cachedBoundaryKey = null;
+    }
+
     /* ===== Flood Fill (scanline optimized) ===== */
     function floodFill(sx, sy, fillHex) {
         var w = canvas.width;
@@ -556,10 +598,14 @@
         var tol = 32;
         var visited = new Uint8Array(w * h);
 
+        // Get template boundary mask (lines act as fill barriers)
+        var boundary = state.templateFunc ? getTemplateBoundary(w, h) : null;
+
         function match(pos) {
+            if (visited[pos]) return false;
+            if (boundary && boundary[pos]) return false;
             var i = pos * 4;
-            return !visited[pos] &&
-                Math.abs(data[i] - sr) <= tol && Math.abs(data[i + 1] - sg) <= tol &&
+            return Math.abs(data[i] - sr) <= tol && Math.abs(data[i + 1] - sg) <= tol &&
                 Math.abs(data[i + 2] - sb) <= tol && Math.abs(data[i + 3] - sa) <= tol;
         }
 
@@ -897,6 +943,7 @@
         state.templateFunc = null;
         state.templateName = null;
         state.templateMode = 'trace';
+        invalidateBoundaryCache();
 
         // Reset UI
         setActiveInGroup('#toolbar .tool-btn', document.querySelector('[data-tool="pen"]'));
@@ -955,6 +1002,22 @@
         if (tool === 'template') { templateModal.classList.remove('hidden'); return; }
         if (tool === 'save') { showSaveDialog(); return; }
         if (tool === 'reset') { doReset(); return; }
+
+        // Toggle template mode bar when re-tapping active drawing tool with template active
+        if (tool === state.tool && state.templateFunc) {
+            var modeBarVisible = !templateModeBar.classList.contains('hidden');
+            penTypesBar.classList.add('hidden');
+            stampTypesBar.classList.add('hidden');
+            if (modeBarVisible) {
+                templateModeBar.classList.add('hidden');
+                // Restore tool's own sub-bar
+                if (tool === 'pen') penTypesBar.classList.remove('hidden');
+                else if (tool === 'stamp') stampTypesBar.classList.remove('hidden');
+            } else {
+                templateModeBar.classList.remove('hidden');
+            }
+            return;
+        }
 
         // Set active tool
         state.tool = tool;
@@ -1067,11 +1130,13 @@
         addTap(free, function () {
             state.templateFunc = null;
             state.templateName = null;
+            invalidateBoundaryCache();
             showTemplateModeBar(false);
             syncOverlay();
             clearToWhite();
             pushHistory();
             templateModal.classList.add('hidden');
+            modalClosedAt = Date.now();
         });
         grid.appendChild(free);
 
@@ -1099,11 +1164,13 @@
                 addTap(item, function () {
                     state.templateFunc = tmpl.fn;
                     state.templateName = tmpl.name;
+                    invalidateBoundaryCache();
                     showTemplateModeBar(true);
                     clearToWhite();
                     syncOverlay();
                     pushHistory();
                     templateModal.classList.add('hidden');
+                    modalClosedAt = Date.now();
                 });
 
                 grid.appendChild(item);

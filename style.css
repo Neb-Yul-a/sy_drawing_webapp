@@ -265,6 +265,8 @@ html, body {
     bottom: 76px;
     background: #fff;
     display: block;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 #canvas-overlay {
@@ -276,6 +278,8 @@ html, body {
     display: none;
     pointer-events: none;
     z-index: 2;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 /* ===== Bottom Bar ===== */

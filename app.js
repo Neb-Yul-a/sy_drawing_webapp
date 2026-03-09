@@ -24,7 +24,7 @@
         '#00E676', '#2979FF', '#651FFF', '#FF4081', '#8D6E63',
         '#00BCD4', '#76FF03', '#FF3D00', '#FFAB00'
     ];
-    var MAX_HISTORY = 5;
+    var MAX_HISTORY = 3;
 
     /* ===== Application State ===== */
     var state = {
@@ -46,6 +46,13 @@
 
     /* Guard: prevent touch pass-through when modals close */
     var modalClosedAt = 0;
+
+    /* Cached canvas position (avoid getBoundingClientRect per touch) */
+    var canvasRect = { left: 0, top: 0 };
+
+    /* rAF throttle for drawing */
+    var pendingMove = null;
+    var rafId = 0;
 
     /* ===== DOM References ===== */
     var canvas, ctx;
@@ -74,6 +81,7 @@
         // Delay canvas sizing to ensure layout is fully settled
         setTimeout(function () {
             sizeCanvas();
+            updateCanvasRect();
             clearToWhite();
             pushHistory();
         }, 100);
@@ -245,6 +253,7 @@
                 imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             } catch (e) { /* ignore */ }
             sizeCanvas();
+            updateCanvasRect();
             clearToWhite();
             if (imgData) {
                 ctx.putImageData(imgData, 0, 0);
@@ -254,11 +263,16 @@
     }
 
     /* ===== Touch / Mouse Handlers ===== */
-    function getCanvasPos(clientX, clientY) {
+    function updateCanvasRect() {
         var rect = canvas.getBoundingClientRect();
+        canvasRect.left = rect.left;
+        canvasRect.top = rect.top;
+    }
+
+    function getCanvasPos(clientX, clientY) {
         return {
-            x: clientX - rect.left,
-            y: clientY - rect.top
+            x: clientX - canvasRect.left,
+            y: clientY - canvasRect.top
         };
     }
 
@@ -274,7 +288,17 @@
         e.preventDefault();
         if (!state.drawing) return;
         if (e.touches.length !== 1) return;
-        var p = getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
+        pendingMove = { cx: e.touches[0].clientX, cy: e.touches[0].clientY };
+        if (!rafId) {
+            rafId = requestAnimationFrame(flushMove);
+        }
+    }
+
+    function flushMove() {
+        rafId = 0;
+        if (!state.drawing || !pendingMove) return;
+        var p = getCanvasPos(pendingMove.cx, pendingMove.cy);
+        pendingMove = null;
         continueStroke(p.x, p.y);
     }
 
@@ -290,8 +314,10 @@
 
     function onMouseMove(e) {
         if (!state.drawing) return;
-        var p = getCanvasPos(e.clientX, e.clientY);
-        continueStroke(p.x, p.y);
+        pendingMove = { cx: e.clientX, cy: e.clientY };
+        if (!rafId) {
+            rafId = requestAnimationFrame(flushMove);
+        }
     }
 
     function onMouseUp() {
@@ -336,6 +362,15 @@
     function finishStroke() {
         if (state.drawing) {
             state.drawing = false;
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+                rafId = 0;
+            }
+            if (pendingMove) {
+                var p = getCanvasPos(pendingMove.cx, pendingMove.cy);
+                continueStroke(p.x, p.y);
+                pendingMove = null;
+            }
             pushHistory();
         }
     }
@@ -358,17 +393,16 @@
             // Extract lines: white/light → transparent, dark → fully opaque
             var imgData = tmpCtx.getImageData(0, 0, tmp.width, tmp.height);
             var d = imgData.data;
-            for (var i = 0; i < d.length; i += 4) {
-                var brightness = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+            var len = d.length;
+            for (var i = 0; i < len; i += 4) {
+                // Fast integer brightness approximation (avoid floats)
+                var brightness = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
                 if (brightness > 220) {
-                    // White/light → fully transparent
                     d[i + 3] = 0;
                 } else if (brightness > 180) {
-                    // Anti-alias transition zone → smooth edge
                     d[i] = d[i + 1] = d[i + 2] = 0;
-                    d[i + 3] = Math.round(255 * (220 - brightness) / 40);
+                    d[i + 3] = (220 - brightness) * 6;  // ~255/40 ≈ 6.375
                 } else {
-                    // Dark line pixel → solid black, fully opaque
                     d[i] = d[i + 1] = d[i + 2] = 0;
                     d[i + 3] = 255;
                 }
@@ -437,10 +471,10 @@
             var t = i / steps;
             var cx = x1 + dx * t;
             var cy = y1 + dy * t;
-            for (var j = 0; j < 3; j++) {
+            for (var j = 0; j < 2; j++) {
                 var ox = (Math.random() - 0.5) * state.size * 0.9;
                 var oy = (Math.random() - 0.5) * state.size * 0.9;
-                ctx.globalAlpha = 0.25 + Math.random() * 0.4;
+                ctx.globalAlpha = 0.3 + Math.random() * 0.35;
                 ctx.beginPath();
                 ctx.arc(cx + ox, cy + oy, state.size * 0.3, 0, Math.PI * 2);
                 ctx.fill();

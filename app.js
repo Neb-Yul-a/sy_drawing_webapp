@@ -92,10 +92,10 @@
     }
 
     function sizeCanvas() {
-        // Calculate canvas size from known layout: toolbar(52px) top, bottom-bar(76px) bottom
+        // Calculate canvas size from known layout: status-bar(20px) + toolbar(52px) top, bottom-bar(76px) bottom
         var w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         var h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-        var topOffset = 52;
+        var topOffset = 72;
         var bottomOffset = 76;
         var canvasW = w;
         var canvasH = h - topOffset - bottomOffset;

@@ -25,10 +25,21 @@ html, body {
     font-family: -apple-system, 'Helvetica Neue', sans-serif;
 }
 
+/* ===== iOS Status Bar Safe Area ===== */
+#status-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: #f3e5f5;
+    z-index: 11;
+}
+
 /* ===== Top Toolbar ===== */
 #toolbar {
     position: absolute;
-    top: 0;
+    top: 20px;
     left: 0;
     right: 0;
     height: 52px;
@@ -169,7 +180,7 @@ html, body {
 /* ===== Sub Toolbars ===== */
 .sub-toolbar {
     position: absolute;
-    top: 52px;
+    top: 72px;
     left: 0;
     right: 0;
     height: 44px;
@@ -259,7 +270,7 @@ html, body {
 /* ===== Canvas ===== */
 #canvas {
     position: absolute;
-    top: 52px;
+    top: 72px;
     left: 0;
     right: 0;
     bottom: 76px;
@@ -271,7 +282,7 @@ html, body {
 
 #canvas-overlay {
     position: absolute;
-    top: 52px;
+    top: 72px;
     left: 0;
     right: 0;
     bottom: 76px;

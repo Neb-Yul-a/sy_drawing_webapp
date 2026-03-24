@@ -54,6 +54,9 @@
     var pendingMove = null;
     var rafId = 0;
 
+    /* Suppress ghost mouse events after touch interactions */
+    var suppressMouseUntil = 0;
+
     /* Cached template boundary for flood fill */
     var cachedBoundary = null;
     var cachedBoundaryKey = null;
@@ -235,16 +238,22 @@
         }
     }
 
-    /* Utility: add touch-first tap handler that deduplicates touch+click */
-    var _tapTimers = [];
+    /* Utility: add touch-first tap handler that deduplicates touch/click */
     function addTap(el, handler) {
-        var lastTouch = 0;
-        el.addEventListener('touchstart', function (e) {
-            lastTouch = Date.now();
+        el.addEventListener('touchend', function (e) {
+            suppressMouseUntil = Date.now() + 900;
+            e.preventDefault();
+            e.stopPropagation();
             handler.call(this, e);
         }, false);
         el.addEventListener('click', function (e) {
-            if (Date.now() - lastTouch < 500) return;
+            if (Date.now() < suppressMouseUntil) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            e.preventDefault();
+            e.stopPropagation();
             handler.call(this, e);
         }, false);
     }
@@ -285,6 +294,7 @@
     function onTouchStart(e) {
         e.preventDefault();
         if (e.touches.length !== 1) return;
+        if (Date.now() < suppressMouseUntil) return;
         if (Date.now() - modalClosedAt < 400) return;
         var p = getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
         beginStroke(p.x, p.y);
@@ -314,6 +324,7 @@
     }
 
     function onMouseDown(e) {
+        if (Date.now() < suppressMouseUntil) return;
         if (Date.now() - modalClosedAt < 400) return;
         var p = getCanvasPos(e.clientX, e.clientY);
         beginStroke(p.x, p.y);

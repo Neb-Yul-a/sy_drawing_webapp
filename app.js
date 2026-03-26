@@ -21,7 +21,7 @@
     /* ===== Configuration ===== */
     var COLORS = [
         '#000000', '#FFFFFF', '#FF1744', '#FF6D00', '#FFD600',
-        '#00E676', '#2979FF', '#651FFF', '#FF4081', '#8D6E63',
+        '#00E676', '#2979FF', '#B600FF', '#FF4081', '#8D6E63',
         '#00BCD4', '#76FF03', '#FF3D00', '#FFAB00'
     ];
     var MAX_HISTORY = 3;
